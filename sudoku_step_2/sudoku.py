@@ -53,13 +53,36 @@ class SudokuBoard(tk.Tk):
                     pady=0,
                     sticky="nsew"
                 )
-#Methods to Fill randomly positions 
+
+    def display_numbers(self, moves_matrix):
+        for row in moves_matrix:
+            for move in row:
+                if move.label:  # si no está vacío
+                    # buscar el botón correspondiente
+                    for button, (r, c) in self._cells.items():
+                        if r == move.row and c == move.col:
+                            button.config(text=str(move.label))
+
+
+
+
+class SudokuGame:
+    def __init__(self):
+        self._initial_values = []
+        self.win_combination = []
+        self._current_moves = []
+        self._is_game_over = False
+        self._gen_init_board()
+        self._set_up_board()
+        
+
+    #Methods to Fill randomly positions 
     def _generate_numbers(self):
         return random.randint(0, 9)
 
     def _generate_coord(self):
         '''Generates random coordinates to start the game'''
-        total = self.generate_numbers()
+        total = self._generate_numbers()
         # generate pairs (x, y) directly
         fill = [(self._generate_numbers(), self._generate_numbers()) for _ in range(total)]
         
@@ -78,11 +101,27 @@ class SudokuBoard(tk.Tk):
                 coords.append((self._generate_numbers(), y))
         return coords
 
+    def _gen_init_board(self):
+        self._initial_values = self._generate_coord()
+        
+
+    def _set_up_board(self):
+        self._current_moves = [
+            [Move(row,col,self._generate_numbers()) \
+                               if (row, col) in self._initial_values else Move(row,col)\
+                                for col in range(9)]
+                                for row in range(9)
+                                ]
+    
+    def get_initial_board(self):
+        return self._current_moves
 
 
 def main():
+    game = SudokuGame()
     board = SudokuBoard()
     board.geometry('400x500')
+    board.display_numbers(game.get_initial_board())
     board.mainloop()
 
 if __name__ == '__main__':
