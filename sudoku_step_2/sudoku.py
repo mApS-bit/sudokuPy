@@ -1,6 +1,8 @@
 '''Sudoku game built with python'''
 
 import tkinter as tk
+import tkinter.simpledialog as simpledialog
+import tkinter.messagebox as messagebox
 from tkinter import font
 from typing import NamedTuple
 
@@ -12,10 +14,11 @@ class Move(NamedTuple):
     label: str =""
 
 class SudokuBoard(tk.Tk):
-    def __init__(self):
+    def __init__(self, game):
         super().__init__()
         self.title('Sudoku Game')
         self._cells = {}
+        self._game = game
         self._create_board_display()
         self._create_board_grid()
     
@@ -54,6 +57,25 @@ class SudokuBoard(tk.Tk):
                     sticky="nsew"
                 )
 
+                button.config(command=lambda b=button: self._on_cell_click(b))
+
+    def _on_cell_click(self, button):
+        row, col = self._cells[button]
+
+        if (row,col) in self._game._initial_values:
+            return
+        
+        value = simpledialog.askstring("Input", f"Número para la celda ({row + 1},{col + 1}) [1-9 o vacío]:")
+        if not value:
+            button.config(text="")
+            self._game._current_moves[row][col] = Move(row, col, "")
+        elif value.isdigit() and 1 <=  int(value) <= 9:
+            button.config(text=value)
+            self._game._current_moves[row][col] = Move(row,col, value)
+        else:
+            messagebox.showerror("Error", "Debe ser un número del 1 al 9 o vacío.")
+
+
     def display_numbers(self, moves_matrix):
         for row in moves_matrix:
             for move in row:
@@ -69,7 +91,6 @@ class SudokuBoard(tk.Tk):
 class SudokuGame:
     def __init__(self):
         self._initial_values = []
-        self.win_combination = []
         self._current_moves = []
         self._is_game_over = False
         self._gen_init_board()
@@ -78,7 +99,7 @@ class SudokuGame:
 
     #Methods to Fill randomly positions 
     def _generate_numbers(self):
-        return random.randint(0, 9)
+        return random.randint(1, 9)
 
     def _generate_coord(self):
         '''Generates random coordinates to start the game'''
@@ -119,7 +140,7 @@ class SudokuGame:
 
 def main():
     game = SudokuGame()
-    board = SudokuBoard()
+    board = SudokuBoard(game)
     board.geometry('400x500')
     board.display_numbers(game.get_initial_board())
     board.mainloop()
