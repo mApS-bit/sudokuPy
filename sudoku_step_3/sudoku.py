@@ -71,7 +71,7 @@ class SudokuBoard(tk.Tk):
             self._game._current_moves[row][col] = Move(row, col, "")
         elif value.isdigit() and 1 <=  int(value) <= 9:
             button.config(text=value)
-            self._game._current_moves[row][col] = Move(row,col, value)
+            self._game._current_moves[row][col] = Move(row, col, value)
         else:
             messagebox.showerror("Error", "Debe ser un número del 1 al 9 o vacío.")
 
@@ -139,7 +139,46 @@ class SudokuGame:
 
     #Check for a game over
 
+    def check_row_and_columns(self):
+        copy_fill_board = self._current_moves
+        transpose_fill_board = [list(row) for row in zip(*copy_fill_board)]
+        
+        for i, row in enumerate(copy_fill_board):
+            if sum(row) != 45:
+                return False
+        for j, col in enumerate(transpose_fill_board):
+            if sum(col) != 45:
+                return False
+
+        return True
+
+    def check_mini_board(self):
+        xs = [0,3,6]
+        verts = [(i,j) for i in xs for j in xs]
+
+        for vert in verts:
+            mini = self.extract_mini_board(*vert) 
+            if sum(mini) != 45:
+                return False
+            
+        return True
     
+    def extract_mini_board(self , row, col):
+        copy_board = self._current_moves
+        rows = copy_board[row: row + 3]
+        mini_board = rows[0][col:col + 3] + rows[1][col:col + 3] + rows[2][col:col + 3]
+
+        return mini_board
+
+
+    def check_game_over(self):
+        for i , move in enumerate(self._current_moves):
+            for j , _ in enumerate(move):
+                if move.label == "" :
+                    return 
+        
+        return self.check_row_and_columns() and self.check_mini_board()
+            
 
 
 def main():
