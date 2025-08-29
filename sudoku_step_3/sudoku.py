@@ -75,6 +75,11 @@ class SudokuBoard(tk.Tk):
         else:
             messagebox.showerror("Error", "Debe ser un número del 1 al 9 o vacío.")
 
+        if self._game._check_game_over():
+            messagebox.showinfo("¡Felicidades!", "Has completado el Sudoku correctamente 🎉")
+            self.destroy()
+
+
 
     def display_numbers(self, moves_matrix):
         for row in moves_matrix:
@@ -139,31 +144,31 @@ class SudokuGame:
 
     #Check for a game over
 
-    def check_row_and_columns(self):
+    def _check_row_and_columns(self):
         copy_fill_board = self._current_moves
         transpose_fill_board = [list(row) for row in zip(*copy_fill_board)]
         
-        for i, row in enumerate(copy_fill_board):
-            if sum(row) != 45:
+        for  row in copy_fill_board:
+            if sum(int(m.label) for m in row if m.label) != 45:
                 return False
-        for j, col in enumerate(transpose_fill_board):
-            if sum(col) != 45:
+        for col in transpose_fill_board:
+            if sum(int(m.label) for m in col if m.label) != 45:
                 return False
 
         return True
 
-    def check_mini_board(self):
+    def _check_mini_board(self):
         xs = [0,3,6]
         verts = [(i,j) for i in xs for j in xs]
 
         for vert in verts:
-            mini = self.extract_mini_board(*vert) 
-            if sum(mini) != 45:
+            mini = self._extract_mini_board(*vert) 
+            if sum(int(m.label) for m in mini if m.label) != 45:
                 return False
             
         return True
     
-    def extract_mini_board(self , row, col):
+    def _extract_mini_board(self , row, col):
         copy_board = self._current_moves
         rows = copy_board[row: row + 3]
         mini_board = rows[0][col:col + 3] + rows[1][col:col + 3] + rows[2][col:col + 3]
@@ -171,15 +176,21 @@ class SudokuGame:
         return mini_board
 
 
-    def check_game_over(self):
-        for i , move in enumerate(self._current_moves):
-            for j , _ in enumerate(move):
+    def _check_game_over(self):
+        for row in self._current_moves:
+            for move in row:
                 if move.label == "" :
-                    return 
+                    return False
         
-        return self.check_row_and_columns() and self.check_mini_board()
-            
+        return self._check_row_and_columns() and self._check_mini_board()
 
+    #Game Over        
+    def _set_is_over(self):
+        if self._check_game_over():
+            self._is_game_over = True
+
+    def get_is_game_over(self):
+        return self._is_game_over
 
 def main():
     game = SudokuGame()
